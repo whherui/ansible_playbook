@@ -1,0 +1,30 @@
+---
+- hosts: aws-win
+  tasks:
+    - name: backup jyserver-ptjy      
+      community.windows.win_robocopy:
+        src: C:\zzinfo\jyserver-ptjy
+        dest: C:\zzinfo\jyserver-ptjy_bak
+        recurse: yes
+        
+    - name: Create Temp directory for gitlab code
+      ansible.windows.win_file:
+        path: C:\tmp\git\workspace
+        state: directory        
+    
+    - name: download workspace code to servers
+      ansible.windows.win_copy:
+        src: /var/lib/docker/volumes/jenkins-data/_data/workspace/deploy_xfn_ptjy_main/
+        dest: C:\tmp\git\workspace
+
+    - name: Compare the difference between the code in the workspace and the server
+      community.windows.win_robocopy:
+        src: C:\tmp\git\workspace
+        dest: C:\zzinfo\jyserver-ptjy
+        recurse: yes
+        purge: yes
+
+    - name: Delete Temp Directory
+      ansible.windows.win_file:
+        path: C:\tmp\git\frontend
+        state: absent 

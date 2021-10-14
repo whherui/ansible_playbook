@@ -1,0 +1,47 @@
+---
+- hosts: aws-win
+  gather_facts: yes
+  
+  tasks:
+    - name: Display the availble timestamp format in Ansible
+      debug:
+        var=ansible_date_time
+  
+    - name: backup mszx\download directory      
+      community.windows.win_robocopy:
+        src: C:\zzinfo\mszx\download
+        dest: C:\zzinfo\mszx\download_{{ ansible_date_time.iso8601_basic_short }}
+        recurse: yes
+        
+    - name: Create Temp directory for gitlab code
+      ansible.windows.win_file:
+        path: C:\temp\workspace
+        state: directory        
+    
+    - name: download workspace code to servers
+      ansible.windows.win_copy:
+        src: /var/lib/jenkins/workspace/deploy_xfn_ptjy_main
+        dest: C:\temp\workspace
+
+    - name: Compare the difference between the code in the workspace and the server
+      community.windows.win_robocopy:
+        src: C:\temp\workspace
+        dest: C:\zzinfo\mszx\download
+        recurse: yes
+        purge: yes
+
+    - name: Create qdymanage directory
+      ansible.windows.win_file:
+        path: C:\zzinfo\mszx\download\qdymanage
+        state: directory
+
+    - name: deploy qdymanage 
+      community.windows.win_robocopy:
+        src: C:\zzinfo\mszx\download_{{ ansible_date_time.iso8601_basic_short }}\qdymanage
+        dest: C:\zzinfo\mszx\download\qdymanage
+        recurse: yes 
+
+    - name: Delete Temp Directory
+      ansible.windows.win_file:
+        path: C:\temp\workspace
+        state: absent 
